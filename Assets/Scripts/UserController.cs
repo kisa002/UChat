@@ -41,16 +41,10 @@ public class UserController : NetworkBehaviour
         //Debug.Log("JOIN : " + username);
     }
 
-    [Command]
-    void CmdJoinMessage(string username)
+    private void Update()
     {
-        RpcJoinMessage(username);
-    }
-
-    [ClientRpc]
-    void RpcJoinMessage(string username)
-    {
-
+        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            CmdSendMessage(username, inputMessage.text, 1);
     }
 
     [Command]
@@ -71,14 +65,14 @@ public class UserController : NetworkBehaviour
 
         int childCount = ChatManager.instance.contentMessage.transform.childCount;
 
-        ChatManager.instance.contentMessage.GetComponent<RectTransform>().sizeDelta = new Vector2(ChatManager.instance.contentMessage.GetComponent<RectTransform>().sizeDelta.x, 40 + (childCount * 65));
+        ChatManager.instance.contentMessage.GetComponent<RectTransform>().sizeDelta = new Vector2(ChatManager.instance.contentMessage.GetComponent<RectTransform>().sizeDelta.x, 40 + (childCount * 110));
 
-        msg.transform.GetComponent<RectTransform>().offsetMin = new Vector2(10, 0);
+        msg.transform.GetComponent<RectTransform>().offsetMin = new Vector2(30, 0);
 
         if (childCount == 1)
             msg.transform.GetComponent<RectTransform>().offsetMax = new Vector2(0, -20);
         else
-            msg.transform.GetComponent<RectTransform>().offsetMax = new Vector2(0, -20 - (65 * (childCount - 1)));
+            msg.transform.GetComponent<RectTransform>().offsetMax = new Vector2(0, -20 - (110 * (childCount - 1)));
 
         if (type == 0)
         {
@@ -95,7 +89,13 @@ public class UserController : NetworkBehaviour
         }
         else if (type == 1)
         {
-            msg.transform.Find("Text").GetComponent<Text>().text = "ME : " + message;           
+            msg.transform.Find("Text").GetComponent<Text>().text = "ME : " + message;
+
+            if (isLocalPlayer)
+            {
+                inputMessage.Select();
+                inputMessage.ActivateInputField();
+            }
 
             if (!isLocalPlayer)
             {
@@ -105,7 +105,7 @@ public class UserController : NetworkBehaviour
                 msg.transform.GetComponent<RectTransform>().anchorMax = new Vector2(1, 1);
                 msg.transform.GetComponent<RectTransform>().pivot = new Vector2(1, 1);
 
-                msg.transform.GetComponent<RectTransform>().offsetMax = new Vector2(-10, msg.transform.GetComponent<RectTransform>().offsetMax.y);
+                msg.transform.GetComponent<RectTransform>().offsetMax = new Vector2(-30, msg.transform.GetComponent<RectTransform>().offsetMax.y);
 
                 msg.GetComponent<Image>().color = new Color(175f / 255f, 98f / 255f, 218f / 255f, 1f);
                 msg.transform.Find("Text").GetComponent<Text>().color = Color.white;
