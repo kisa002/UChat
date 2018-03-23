@@ -32,10 +32,11 @@ public class UserController : NetworkBehaviour
 
         textUsername.text = username;
 
-        CmdJoinMessage(username);
+        //CmdJoinMessage(username);
+        CmdSendMessage(username, "님이 접속하셨습니다", 0);
 
         buttonSend = GameObject.Find("ButtonSend").GetComponent<Button>();
-        buttonSend.onClick.AddListener(delegate { CmdSendMessage(username + " : " + inputMessage.text); });
+        buttonSend.onClick.AddListener(delegate { CmdSendMessage(username, inputMessage.text, 1); });
 
         //Debug.Log("JOIN : " + username);
     }
@@ -49,44 +50,66 @@ public class UserController : NetworkBehaviour
     [ClientRpc]
     void RpcJoinMessage(string username)
     {
-        ChatManager.instance.textChat.text += username + "님이 접속하셨습니다.\n";
+
     }
 
     [Command]
-    public void CmdSendMessage(string message)
+    public void CmdSendMessage(string username, string message, int type)
     {
         if (isServer)
-            RpcSendMessage(message);
+            RpcSendMessage(username, message, type);
 
         if (isLocalPlayer)
             inputMessage.text = "";
     }
 
     [ClientRpc]
-    public void RpcSendMessage(string message)
+    public void RpcSendMessage(string username, string message, int type)
     {
-        // ChatManager.instance.textChat.text += message + "\n";
-
         GameObject msg = Instantiate(ChatManager.instance.message);
-        msg.transform.Find("Text").GetComponent<Text>().text = message;
         msg.transform.SetParent(ChatManager.instance.contentMessage.transform);
 
         int childCount = ChatManager.instance.contentMessage.transform.childCount;
 
-        if(childCount > 3)
-            ChatManager.instance.contentMessage.GetComponent<RectTransform>().sizeDelta = new Vector2(ChatManager.instance.contentMessage.GetComponent<RectTransform>().rect.width, (98 * childCount - 1) - (98 * 3));
-        
-        if(childCount == 1)
-            msg.transform.localPosition = new Vector2(150, -75);
+        ChatManager.instance.contentMessage.GetComponent<RectTransform>().sizeDelta = new Vector2(ChatManager.instance.contentMessage.GetComponent<RectTransform>().sizeDelta.x, 40 + (childCount * 65));
+
+        msg.transform.GetComponent<RectTransform>().offsetMin = new Vector2(10, 0);
+
+        if (childCount == 1)
+            msg.transform.GetComponent<RectTransform>().offsetMax = new Vector2(0, -20);
         else
-            msg.transform.localPosition = new Vector2(150, (ChatManager.instance.contentMessage.transform.GetChild(childCount - 1).position.y) - 65 * (childCount - 1));
+            msg.transform.GetComponent<RectTransform>().offsetMax = new Vector2(0, -20 - (65 * (childCount - 1)));
 
-        if(!isLocalPlayer)
+        if (type == 0)
         {
-            msg.transform.localPosition = new Vector2(800f, msg.transform.localPosition.y);
+            if(isLocalPlayer)
+                msg.transform.Find("Text").GetComponent<Text>().text = username + "(ME)" + message;
+            else
+                msg.transform.Find("Text").GetComponent<Text>().text = username + message;
 
-            msg.GetComponent<Image>().color = new Color(175f / 255f, 98f / 255f, 218f / 255f, 1f);
-            msg.transform.Find("Text").GetComponent<Text>().color = Color.white;
+            msg.transform.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 1);
+            msg.transform.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 1);
+            msg.transform.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
+
+            msg.GetComponent<Image>().color = new Color(250f / 255f, 160f / 255f, 230f / 255f, 1f);
+        }
+        else if (type == 1)
+        {
+            msg.transform.Find("Text").GetComponent<Text>().text = "ME : " + message;           
+
+            if (!isLocalPlayer)
+            {
+                msg.transform.Find("Text").GetComponent<Text>().text = message + " : " + username;
+
+                msg.transform.GetComponent<RectTransform>().anchorMin = new Vector2(1, 1);
+                msg.transform.GetComponent<RectTransform>().anchorMax = new Vector2(1, 1);
+                msg.transform.GetComponent<RectTransform>().pivot = new Vector2(1, 1);
+
+                msg.transform.GetComponent<RectTransform>().offsetMax = new Vector2(-10, msg.transform.GetComponent<RectTransform>().offsetMax.y);
+
+                msg.GetComponent<Image>().color = new Color(175f / 255f, 98f / 255f, 218f / 255f, 1f);
+                msg.transform.Find("Text").GetComponent<Text>().color = Color.white;
+            }
         }
 
         if(isServer)

@@ -14,6 +14,7 @@ public class ChatManager : NetworkBehaviour
     public InputField inputMessage;
 
     public GameObject contentMessage;
+    public GameObject messageGroup;
     public GameObject message;
 
 
