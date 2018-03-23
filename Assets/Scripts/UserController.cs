@@ -57,14 +57,39 @@ public class UserController : NetworkBehaviour
     {
         if (isServer)
             RpcSendMessage(message);
+
+        if (isLocalPlayer)
+            inputMessage.text = "";
     }
 
     [ClientRpc]
     public void RpcSendMessage(string message)
     {
-        if (isLocalPlayer)
-            inputMessage.text = "";
+        // ChatManager.instance.textChat.text += message + "\n";
 
-        ChatManager.instance.textChat.text += message + "\n";
+        GameObject msg = Instantiate(ChatManager.instance.message);
+        msg.transform.Find("Text").GetComponent<Text>().text = message;
+        msg.transform.SetParent(ChatManager.instance.contentMessage.transform);
+
+        int childCount = ChatManager.instance.contentMessage.transform.childCount;
+
+        if(childCount > 3)
+            ChatManager.instance.contentMessage.GetComponent<RectTransform>().sizeDelta = new Vector2(ChatManager.instance.contentMessage.GetComponent<RectTransform>().rect.width, (98 * childCount - 1) - (98 * 3));
+        
+        if(childCount == 1)
+            msg.transform.localPosition = new Vector2(150, -75);
+        else
+            msg.transform.localPosition = new Vector2(150, (ChatManager.instance.contentMessage.transform.GetChild(childCount - 1).position.y) - 65 * (childCount - 1));
+
+        if(!isLocalPlayer)
+        {
+            msg.transform.localPosition = new Vector2(800f, msg.transform.localPosition.y);
+
+            msg.GetComponent<Image>().color = new Color(175f / 255f, 98f / 255f, 218f / 255f, 1f);
+            msg.transform.Find("Text").GetComponent<Text>().color = Color.white;
+        }
+
+        if(isServer)
+            NetworkServer.Spawn(msg);
     }
 }

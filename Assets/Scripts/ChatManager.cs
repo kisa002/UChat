@@ -8,10 +8,14 @@ public class ChatManager : NetworkBehaviour
 {
     public static ChatManager instance;
 
+    public UserController user;
+    
     public Text textChat;
     public InputField inputMessage;
 
-    public UserController user;
+    public GameObject contentMessage;
+    public GameObject message;
+
 
     void Awake()
     {
